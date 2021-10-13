@@ -17,18 +17,14 @@
  */
 
 import { AccessControlUtils } from "@wso2is/access-control";
-import { AlertInterface, ChildRouteInterface, ProfileInfoInterface, RouteInterface } from "@wso2is/core/models";
-import { initializeAlertSystem } from "@wso2is/core/store";
+import { ChildRouteInterface, ProfileInfoInterface, RouteInterface } from "@wso2is/core/models";
 import { RouteUtils as CommonRouteUtils, CommonUtils } from "@wso2is/core/utils";
 import {
-    Alert,
     ContentLoader,
-    DashboardLayout as DashboardLayoutSkeleton,
     EmptyPlaceholder,
     ErrorBoundary,
     LinkButton,
-    SidePanel,
-    TopLoadingBar
+    SidePanel
 } from "@wso2is/react-components";
 import cloneDeep from "lodash-es/cloneDeep";
 import isEmpty from "lodash-es/isEmpty";
@@ -37,15 +33,12 @@ import React, {
     ReactElement,
     ReactNode,
     Suspense,
-    SyntheticEvent,
     useEffect,
     useState
 } from "react";
 import { useTranslation } from "react-i18next";
-import { System } from "react-notification-system";
 import { useDispatch, useSelector } from "react-redux";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
-import { Responsive } from "semantic-ui-react";
 import { commonConfig } from "../extensions";
 import { getProfileInformation } from "../features/authentication/store";
 import {
@@ -55,8 +48,6 @@ import {
     AppViewTypes,
     ConfigReducerStateInterface,
     FeatureConfigInterface,
-    Footer,
-    Header,
     ProtectedRoute,
     RouteUtils,
     StrictAppViewTypes,
@@ -69,6 +60,7 @@ import {
     useUIElementSizes
 } from "../features/core";
 import { setActiveView, setDeveloperVisibility, setManageVisibility } from "../features/core/store/actions";
+import { DashboardLayout as DashboardLayoutSkeleton } from "../layouts";
 
 /**
  * Developer View Prop types.
@@ -104,9 +96,6 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
     const config: ConfigReducerStateInterface = useSelector((state: AppState) => state.config);
     const profileInfo: ProfileInfoInterface = useSelector((state: AppState) => state.profile.profileInfo);
     const featureConfig: FeatureConfigInterface = useSelector((state: AppState) => state.config.ui.features);
-    const alert: AlertInterface = useSelector((state: AppState) => state.global.alert);
-    const alertSystem: System = useSelector((state: AppState) => state.global.alertSystem);
-    const isAJAXTopLoaderVisible: boolean = useSelector((state: AppState) => state.global.isAJAXTopLoaderVisible);
     const allowedScopes: string = useSelector((state: AppState) => state?.auth?.allowedScopes);
     const activeView: AppViewTypes = useSelector((state: AppState) => state.global.activeView);
 
@@ -163,8 +152,6 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
                     routes = routes.filter(route => route.id === "404");
         }
 
-        const controlledRoutes = AccessControlUtils.getAuthenticatedRoutes(
-            routes, allowedScopes, featureConfig, commonConfig.checkForUIResourceScopes);
         const sanitizedManageRoutes: RouteInterface[] = CommonRouteUtils.sanitizeForUI(cloneDeep(manageRoutes));
 
         const tab: string = AccessControlUtils.getDisabledTab(
@@ -190,13 +177,6 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
     }, [ featureConfig, getDeveloperViewRoutes, allowedScopes ]);
 
     /**
-     * Handles side panel toggle click.
-     */
-    const handleSidePanelToggleClick = (): void => {
-        setMobileSidePanelVisibility(!mobileSidePanelVisibility);
-    };
-
-    /**
      * Handles side panel pusher on click.
      */
     const handleSidePanelPusherClick = (): void => {
@@ -217,25 +197,6 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
                 setMobileSidePanelVisibility(false);
             }
         }
-    };
-
-    /**
-     * Handles the layout on change event.
-     *
-     * @param {React.SyntheticEvent<HTMLElement>} event - On change event.
-     * @param {any} width - Width of the browser window.
-     */
-    const handleLayoutOnUpdate = (event: SyntheticEvent<HTMLElement>, { width }): void => {
-        if (width < Responsive.onlyTablet.minWidth) {
-            setIsMobileViewport(true);
-            return;
-        }
-
-        if (!isMobileViewport) {
-            return;
-        }
-
-        setIsMobileViewport(false);
     };
 
     /**
@@ -300,41 +261,8 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
         return resolvedRoutes;
     };
 
-    /**
-     * Handles alert system initialize.
-     *
-     * @param system - Alert system object.
-     */
-    const handleAlertSystemInitialize = (system) => {
-        dispatch(initializeAlertSystem(system));
-    };
-
     return (
         <DashboardLayoutSkeleton
-            alert={ (
-                <Alert
-                    dismissInterval={ UIConstants.ALERT_DISMISS_INTERVAL }
-                    alertsPosition="br"
-                    alertSystem={ alertSystem }
-                    alert={ alert }
-                    onAlertSystemInitialize={ handleAlertSystemInitialize }
-                    withIcon={ true }
-                />
-            ) }
-            topLoadingBar={ (
-                <TopLoadingBar
-                    height={ UIConstants.AJAX_TOP_LOADING_BAR_HEIGHT }
-                    visibility={ isAJAXTopLoaderVisible }
-                />
-            ) }
-            onLayoutOnUpdate={ handleLayoutOnUpdate }
-            header={ (
-                <Header
-                    activeView={ StrictAppViewTypes.DEVELOP }
-                    fluid={ !isMobileViewport ? fluid : false }
-                    onSidePanelToggleClick={ handleSidePanelToggleClick }
-                />
-            ) }
             sidePanel={ (
                 <SidePanel
                     ordered
@@ -357,11 +285,6 @@ export const DeveloperView: FunctionComponent<DeveloperViewPropsInterface> = (
                     selected={ selectedRoute }
                     translationHook={ t }
                     allowedScopes={ allowedScopes }
-                />
-            ) }
-            footer={ (
-                <Footer
-                    fluid={ !isMobileViewport ? fluid : false }
                 />
             ) }
         >

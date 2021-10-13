@@ -16,20 +16,18 @@
  * under the License.
  */
 
-import { AccessControlProvider, AccessControlUtils } from "@wso2is/access-control";
+import { AccessControlUtils } from "@wso2is/access-control";
 import { hasRequiredScopes } from "@wso2is/core/helpers";
 import { AlertInterface, ChildRouteInterface, ProfileInfoInterface, RouteInterface } from "@wso2is/core/models";
 import { initializeAlertSystem } from "@wso2is/core/store";
 import { RouteUtils as CommonRouteUtils, CommonUtils } from "@wso2is/core/utils";
 import {
-    Alert,
     ContentLoader,
-    DashboardLayout as DashboardLayoutSkeleton,
+    // DashboardLayout as DashboardLayoutSkeleton,
     EmptyPlaceholder,
     ErrorBoundary,
     LinkButton,
-    SidePanel,
-    TopLoadingBar
+    SidePanel
 } from "@wso2is/react-components";
 import cloneDeep from "lodash-es/cloneDeep";
 import isEmpty from "lodash-es/isEmpty";
@@ -57,8 +55,6 @@ import {
     AppViewTypes,
     ConfigReducerStateInterface,
     FeatureConfigInterface,
-    Footer,
-    Header,
     ProtectedRoute,
     RouteUtils,
     StrictAppViewTypes,
@@ -77,6 +73,7 @@ import {
     GovernanceConnectorUtils,
     ServerConfigurationsConstants
 } from "../features/server-configurations";
+import { DashboardLayout as DashboardLayoutSkeleton } from "../layouts";
 
 /**
  * Admin View Prop types.
@@ -112,9 +109,6 @@ export const AdminView: FunctionComponent<AdminViewPropsInterface> = (
     const config: ConfigReducerStateInterface = useSelector((state: AppState) => state.config);
     const profileInfo: ProfileInfoInterface = useSelector((state: AppState) => state.profile.profileInfo);
     const featureConfig: FeatureConfigInterface = useSelector((state: AppState) => state.config.ui.features);
-    const alert: AlertInterface = useSelector((state: AppState) => state.global.alert);
-    const alertSystem: System = useSelector((state: AppState) => state.global.alertSystem);
-    const isAJAXTopLoaderVisible: boolean = useSelector((state: AppState) => state.global.isAJAXTopLoaderVisible);
     const allowedScopes: string = useSelector((state: AppState) => state?.auth?.allowedScopes);
     const governanceConnectorCategories: GovernanceConnectorCategoryInterface[] = useSelector(
         (state: AppState) => state.governanceConnector.categories);
@@ -301,13 +295,6 @@ export const AdminView: FunctionComponent<AdminViewPropsInterface> = (
     }, [ allowedScopes, governanceConnectorCategories, featureConfig ]);
 
     /**
-     * Handles side panel toggle click.
-     */
-    const handleSidePanelToggleClick = (): void => {
-        setMobileSidePanelVisibility(!mobileSidePanelVisibility);
-    };
-
-    /**
      * Handles side panel pusher on click.
      */
     const handleSidePanelPusherClick = (): void => {
@@ -328,25 +315,6 @@ export const AdminView: FunctionComponent<AdminViewPropsInterface> = (
                 setMobileSidePanelVisibility(false);
             }
         }
-    };
-
-    /**
-     * Handles the layout on change event.
-     *
-     * @param {React.SyntheticEvent<HTMLElement>} event - On change event.
-     * @param {any} width - Width of the browser window.
-     */
-    const handleLayoutOnUpdate = (event: SyntheticEvent<HTMLElement>, { width }): void => {
-        if (width < Responsive.onlyTablet.minWidth) {
-            setIsMobileViewport(true);
-            return;
-        }
-
-        if (!isMobileViewport) {
-            return;
-        }
-
-        setIsMobileViewport(false);
     };
 
     /**
@@ -411,36 +379,8 @@ export const AdminView: FunctionComponent<AdminViewPropsInterface> = (
         return resolvedRoutes;
     };
 
-    const handleAlertSystemInitialize = (system) => {
-        dispatch(initializeAlertSystem(system));
-    };
-
     return (
         <DashboardLayoutSkeleton
-            alert={ (
-                <Alert
-                    dismissInterval={ UIConstants.ALERT_DISMISS_INTERVAL }
-                    alertsPosition="br"
-                    alertSystem={ alertSystem }
-                    alert={ alert }
-                    onAlertSystemInitialize={ handleAlertSystemInitialize }
-                    withIcon={ true }
-                />
-            ) }
-            topLoadingBar={ (
-                <TopLoadingBar
-                    height={ UIConstants.AJAX_TOP_LOADING_BAR_HEIGHT }
-                    visibility={ isAJAXTopLoaderVisible }
-                />
-            ) }
-            onLayoutOnUpdate={ handleLayoutOnUpdate }
-            header={ (
-                <Header
-                    activeView={ StrictAppViewTypes.MANAGE }
-                    fluid={ !isMobileViewport ? fluid : false }
-                    onSidePanelToggleClick={ handleSidePanelToggleClick }
-                />
-            ) }
             sidePanel={ (
                 <SidePanel
                     categorized={
@@ -463,11 +403,6 @@ export const AdminView: FunctionComponent<AdminViewPropsInterface> = (
                     selected={ selectedRoute }
                     translationHook={ t }
                     allowedScopes={ allowedScopes }
-                />
-            ) }
-            footer={ (
-                <Footer
-                    fluid={ !isMobileViewport ? fluid : false }
                 />
             ) }
         >
